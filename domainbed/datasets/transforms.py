@@ -61,7 +61,7 @@ aug_M = A.Compose(
         A.ToGray(p=0.3),
         A.Sharpen((0.2, 0.5), (0.5, 1.0), p=0.2),
         A.ChannelShuffle(p=0.4),
-        A.Downscale(0.5, 0.5, p=0.2),
+        A.Downscale(scale_min=0.5, scale_max=0.5, p=0.2),
         A.Normalize(mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711]),
         ToTensorV2(),
     ]
