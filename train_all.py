@@ -26,6 +26,7 @@ def main():
     parser.add_argument("name", type=str)
     parser.add_argument("configs", nargs="*")
     parser.add_argument("--data_dir", type=str, default="datadir/")
+    parser.add_argument("--output_dir", type=str, default="train_output/")
     parser.add_argument("--dataset", type=str, default="PACS")
     parser.add_argument("--algorithm", type=str, default="ERM")
     parser.add_argument(
@@ -85,7 +86,7 @@ def main():
     args.work_dir = Path(".")
     args.data_dir = Path(args.data_dir)
 
-    args.out_root = args.work_dir / Path("train_output") / args.dataset
+    args.out_root = args.work_dir / Path(args.output_dir) / args.dataset
     args.out_dir = args.out_root / args.unique_name
     args.out_dir.mkdir(exist_ok=True, parents=True)
 
