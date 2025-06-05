@@ -24,6 +24,8 @@ DATASETS = [
     "OfficeHome",
     "TerraIncognita",
     "DomainNet",
+    # External datasets
+    "CervixCyto"
 ]
 
 
@@ -251,4 +253,10 @@ class TerraIncognita(MultipleEnvironmentImageFolder):
     N_STEPS=5001
     def __init__(self, root):
         self.dir = os.path.join(root, "terra_incognita/")
+        super().__init__(self.dir)
+
+class CervixCyto(MultipleEnvironmentImageFolder):
+    ENVIRONMENTS = ["bhs", "cyto93", "lbc", "repomed"]
+    def __init__(self, root):
+        self.dir = os.path.join(root, "CervixCyto/")
         super().__init__(self.dir)

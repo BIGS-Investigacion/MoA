@@ -108,6 +108,19 @@ def get_backbone(name, preserve_readout, pretrained, r=4):
         require_grad_params, names = inject_trainable_moe_kronecker_new(network, r=[1, 2, 4, 8], where='every_qkv')
         setattr(network, 'require_grad_params', require_grad_params)
 
+    elif name == "conch_moek_every_qkv":
+        from domainbed.models.lora.lora_util import inject_trainable_moe_kronecker_new
+        from conch.open_clip_custom import create_model_from_pretrained
+
+        network, _ = create_model_from_pretrained("conch_ViT-B-16", checkpoint_path="/home/pcx/pytorch-models/conch_chkpt.bin")
+        network = network.visual
+
+        n_outputs = network.ln_caption.normalized_shape[0]
+        for name, param in network.named_parameters():
+            param.requires_grad = False
+        require_grad_params, names = inject_trainable_moe_kronecker_new(network, r=[1, 2, 4, 8], where='every_qkv')
+        setattr(network, 'require_grad_params', require_grad_params)
+
     else:
         raise ValueError(name)
 

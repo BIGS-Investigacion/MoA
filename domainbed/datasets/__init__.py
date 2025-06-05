@@ -19,6 +19,8 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
             dset.transforms = {"x": DBT.aug_open}
         elif "large" in hparams.model :
             dset.transforms = {"x": DBT.aug_img}
+        elif "conch" in hparams.model :
+            dset.transforms = {"x": DBT.aug_conch}
         additional_data = True
     elif data_type == "valid":
         if hparams["val_augment"] is False:
@@ -26,6 +28,8 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
                 dset.transforms = {"x": DBT.basic_open}
             elif "large" in hparams.model :
                 dset.transforms = {"x": DBT.basic_img}
+            elif "conch" in hparams.model :
+                dset.transforms = {"x": DBT.basic_conch}
         else:
             # Originally, DomainBed use same training augmentation policy to validation.
             # We turn off the augmentation for validation as default,
