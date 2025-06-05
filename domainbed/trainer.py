@@ -101,6 +101,8 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
     #######################################################
     # setup algorithm (model)
     #######################################################
+    
+    # The Algorithm class also initializes the model. See domainbed/networks/networks.py (ResNet class) for more details.
     algorithm = algorithm_class(
         dataset.input_shape,
         dataset.num_classes,
@@ -110,12 +112,13 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
     )
     algorithm.cuda()
     
-    
     n_params = sum([p.numel() for p in algorithm.parameters()])
     logger.info("# of params = %d" % n_params)
 
     train_minibatches_iterator = zip(*train_loaders)
     checkpoint_vals = collections.defaultdict(lambda: [])
+
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(algorithm.optimizer, n_steps, eta_min=1e-6, last_epoch=-1)
 
     #######################################################
     # start training loop
@@ -159,7 +162,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
         inputs = {**batches, "step": step}
 
         step_vals = algorithm.update(**inputs)
-        
+        scheduler.step()
 
         for key, val in step_vals.items():
             checkpoint_vals[key].append(val)
