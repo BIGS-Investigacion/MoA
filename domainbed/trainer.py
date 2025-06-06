@@ -72,6 +72,8 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
     prt_steps = ", ".join([f"{step:.2f}" for step in steps_per_epochs])
     logger.info(f"steps-per-epoch for each domain: {prt_steps} -> min = {steps_per_epoch:.2f}")
     best_acc=0.
+    es_count = 0 
+    es_val = np.inf if args.es_val is None else args.es_val
     # setup loaders
     train_loaders = [
         InfiniteDataLoader(
@@ -232,6 +234,11 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
                     else:
                         logger.debug("DEBUG Mode -> no save (org path: %s)" % path)
                     best_acc = summaries["train_out"]
+                    es_count = 0
+
+                else:
+                    es_count +=1
+            
             # swad
             if swad:
                 def prt_results_fn(results, avgmodel):
@@ -249,6 +256,9 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
 
                 swad_algorithm = swa_utils.AveragedModel(algorithm)  # reset
 
+            if es_count >= es_val:
+                logger.info("reached max number of iterations without improvement -> early stop !")
+                break
 
         if step % args.tb_freq == 0:
             # add step values only for tb log

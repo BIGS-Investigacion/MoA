@@ -61,6 +61,7 @@ def main():
     )
     parser.add_argument("--prebuild_loader", action="store_true", help="Pre-build eval loaders")
     parser.add_argument("--en", type=bool, default=None)
+    parser.add_argument("--es_val", type=int, default=5)
     args, left_argv = parser.parse_known_args()
     args.deterministic = True
 
