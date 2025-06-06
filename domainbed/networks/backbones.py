@@ -113,7 +113,8 @@ def get_backbone(name, preserve_readout, pretrained, r=4):
         from conch.open_clip_custom import create_model_from_pretrained
 
         network, _ = create_model_from_pretrained("conch_ViT-B-16", checkpoint_path="/home/pcx/pytorch-models/conch_chkpt.bin")
-        network = network.visual
+        network = network.visual.to(torch.device("cuda"))
+        network.use_attentional_pool_contrast=False
 
         n_outputs = network.ln_caption.normalized_shape[0]
         for name, param in network.named_parameters():

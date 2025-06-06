@@ -50,7 +50,14 @@ class MLP(nn.Module):
 
 
 class ResNet(torch.nn.Module):
-    """ResNet with the softmax chopped off and the batchnorm frozen"""
+    """
+    ResNet with the softmax chopped off and the batchnorm frozen
+
+    This class serves as a unified interface for initializing all supported model architectures.
+    The `model` argument (passed via train_all.py) is stored in `hparams` and determines which backbone is instantiated.
+
+    To customize or add a new backbone, see the `get_backbone` function in backbones.py.
+    """
 
     def __init__(self, input_shape, hparams,args):
         super(ResNet, self).__init__()
@@ -79,7 +86,10 @@ class ResNet(torch.nn.Module):
 
     def forward(self, x):
         """Encode x into a feature vector of size n_outputs."""
-        return self.dropout(self.network(x))
+        if "conch" in self.hparams.model:
+            return self.dropout(self.network.forward_no_head(x, normalize=True))
+        else:
+            return self.dropout(self.network(x))
 
     def train(self, mode=True):
         """

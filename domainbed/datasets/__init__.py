@@ -14,6 +14,7 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
     assert hparams["data_augmentation"]
 
     additional_data = False
+
     if data_type == "train":
         if "base" in hparams.model or "vit"==hparams.model  :
             dset.transforms = {"x": DBT.aug_open}
@@ -22,6 +23,7 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
         elif "conch" in hparams.model :
             dset.transforms = {"x": DBT.aug_conch}
         additional_data = True
+
     elif data_type == "valid":
         if hparams["val_augment"] is False:
             if "base" in hparams.model or "vit"==hparams.model :
@@ -38,11 +40,16 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
                 dset.transforms = {"x": DBT.aug_open}
             elif "large" in hparams.model :
                 dset.transforms = {"x": DBT.aug_img}
+            elif "conch" in hparams.model :
+                dset.transforms = {"x": DBT.aug_conch
+                }
     elif data_type == "test":
         if "base" in hparams.model or "vit"==hparams.model :
             dset.transforms = {"x": DBT.basic_open}
         elif "large" in hparams.model :
             dset.transforms = {"x": DBT.basic_img}
+        elif "conch" in hparams.model :
+            dset.transforms = {"x": DBT.basic_conch}
     elif data_type == "mnist":
         # No augmentation for mnist
         dset.transforms = {"x": lambda x: x}
