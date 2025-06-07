@@ -22,6 +22,10 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
             dset.transforms = {"x": DBT.aug_img}
         elif "conch" in hparams.model :
             dset.transforms = {"x": DBT.aug_conch}
+        elif "uni" in hparams.model :
+            dset.transforms = {"x": DBT.aug_uni}
+        else:
+            raise NotImplementedError
         additional_data = True
 
     elif data_type == "valid":
@@ -32,6 +36,11 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
                 dset.transforms = {"x": DBT.basic_img}
             elif "conch" in hparams.model :
                 dset.transforms = {"x": DBT.basic_conch}
+            elif "uni" in hparams.model :
+                dset.transforms = {"x": DBT.basic_uni}
+            else:
+                raise NotImplementedError
+
         else:
             # Originally, DomainBed use same training augmentation policy to validation.
             # We turn off the augmentation for validation as default,
@@ -41,8 +50,12 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
             elif "large" in hparams.model :
                 dset.transforms = {"x": DBT.aug_img}
             elif "conch" in hparams.model :
-                dset.transforms = {"x": DBT.aug_conch
-                }
+                dset.transforms = {"x": DBT.aug_conch}
+            elif "uni" in hparams.model :
+                dset.transforms = {"x": DBT.aug_uni}
+            else:
+                raise NotImplementedError
+
     elif data_type == "test":
         if "base" in hparams.model or "vit"==hparams.model :
             dset.transforms = {"x": DBT.basic_open}
@@ -50,6 +63,11 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
             dset.transforms = {"x": DBT.basic_img}
         elif "conch" in hparams.model :
             dset.transforms = {"x": DBT.basic_conch}
+        elif "uni" in hparams.model :
+                dset.transforms = {"x": DBT.basic_uni}
+        else:
+            raise NotImplementedError
+
     elif data_type == "mnist":
         # No augmentation for mnist
         dset.transforms = {"x": lambda x: x}

@@ -9,6 +9,8 @@ IMAGENET_INCEPTION_MEAN = (0.5, 0.5, 0.5)
 IMAGENET_INCEPTION_STD = (0.5, 0.5, 0.5)
 CONCH_MEAN = (0.48145466, 0.4578275, 0.40821073)
 CONCH_STD = (0.26862954, 0.26130258, 0.27577711)
+UNI_MEAN = (0.485, 0.456, 0.406) 
+UNI_STD = (0.229, 0.224, 0.225)
 
 basic_img = T.Compose(
     [
@@ -87,5 +89,24 @@ aug_conch = T.Compose(
         T.RandomGrayscale(p=0.1),
         T.ToTensor(),
         T.Normalize(mean=CONCH_MEAN, std=CONCH_STD),
+    ]
+)
+
+basic_uni = T.Compose(
+    [
+        T.Resize(224),
+        T.ToTensor(),
+        T.Normalize(mean=UNI_MEAN, std=UNI_STD),
+    ]
+)
+
+aug_uni = T.Compose(
+    [
+        T.RandomResizedCrop(224, scale=(0.7, 1.0)),
+        T.RandomHorizontalFlip(),
+        T.ColorJitter(0.3, 0.3, 0.3, 0.3),
+        T.RandomGrayscale(p=0.1),
+        T.ToTensor(),
+        T.Normalize(mean=UNI_MEAN, std=UNI_STD),
     ]
 )
