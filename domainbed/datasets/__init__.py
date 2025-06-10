@@ -24,6 +24,8 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
             dset.transforms = {"x": DBT.aug_conch}
         elif "uni" in hparams.model :
             dset.transforms = {"x": DBT.aug_uni}
+        elif "Biomed" in hparams.model :
+            dset.transforms = {"x": DBT.aug_biomed}
         else:
             raise NotImplementedError
         additional_data = True
@@ -38,6 +40,8 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
                 dset.transforms = {"x": DBT.basic_conch}
             elif "uni" in hparams.model :
                 dset.transforms = {"x": DBT.basic_uni}
+            elif "Biomed" in hparams.model :
+                dset.transforms = {"x": DBT.basic_biomed}
             else:
                 raise NotImplementedError
 
@@ -53,6 +57,8 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
                 dset.transforms = {"x": DBT.aug_conch}
             elif "uni" in hparams.model :
                 dset.transforms = {"x": DBT.aug_uni}
+            elif "Biomed" in hparams.model :
+                dset.transforms = {"x": DBT.aug_biomed}
             else:
                 raise NotImplementedError
 
@@ -64,7 +70,9 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
         elif "conch" in hparams.model :
             dset.transforms = {"x": DBT.basic_conch}
         elif "uni" in hparams.model :
-                dset.transforms = {"x": DBT.basic_uni}
+            dset.transforms = {"x": DBT.basic_uni}
+        elif "Biomed" in hparams.model :
+            dset.transforms = {"x": DBT.basic_biomed}
         else:
             raise NotImplementedError
 

@@ -88,6 +88,8 @@ class ResNet(torch.nn.Module):
         """Encode x into a feature vector of size n_outputs."""
         if "conch" in self.hparams.model:
             return self.dropout(self.network.forward_no_head(x, normalize=True))
+        elif "Biomed" in self.hparams.model:
+            return self.dropout(self.network(x)[0]) 
         else:
             return self.dropout(self.network(x))
 

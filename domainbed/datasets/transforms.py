@@ -74,7 +74,7 @@ aug_M = A.Compose(
 
 basic_conch = T.Compose(
     [
-        T.Resize(448, interpolation=Interpolation.BICUBIC),
+        T.Resize((448, 448), interpolation=Interpolation.BICUBIC),
         T.CenterCrop(size=(448, 448)),
         T.ToTensor(),
         T.Normalize(mean=CONCH_MEAN, std=CONCH_STD),
@@ -94,7 +94,7 @@ aug_conch = T.Compose(
 
 basic_uni = T.Compose(
     [
-        T.Resize(224),
+        T.Resize((224,224)),
         T.ToTensor(),
         T.Normalize(mean=UNI_MEAN, std=UNI_STD),
     ]
@@ -108,5 +108,24 @@ aug_uni = T.Compose(
         T.RandomGrayscale(p=0.1),
         T.ToTensor(),
         T.Normalize(mean=UNI_MEAN, std=UNI_STD),
+    ]
+)
+
+basic_biomed = T.Compose(
+    [
+        T.Resize((224,224)),
+        T.ToTensor(),
+        T.Normalize(mean=CONCH_MEAN, std=CONCH_STD),
+    ]
+)
+
+aug_biomed = T.Compose(
+    [
+        T.RandomResizedCrop(224, scale=(0.7, 1.0)),
+        T.RandomHorizontalFlip(),
+        T.ColorJitter(0.3, 0.3, 0.3, 0.3),
+        T.RandomGrayscale(p=0.1),
+        T.ToTensor(),
+        T.Normalize(mean=CONCH_MEAN, std=CONCH_STD),
     ]
 )

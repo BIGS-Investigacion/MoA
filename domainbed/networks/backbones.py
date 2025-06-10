@@ -134,6 +134,18 @@ def get_backbone(name, preserve_readout, pretrained, r=4):
             param.requires_grad = False
         require_grad_params, names = inject_trainable_moe_kronecker_new(network, r=[1, 2, 4, 8], where='every_qkv')
         setattr(network, 'require_grad_params', require_grad_params)
+    
+    elif name == "Biomed_moek_every_qkv":
+        from domainbed.models.lora.lora_util import inject_trainable_moe_kronecker_new
+        from open_clip import create_model_from_pretrained, get_tokenizer
+        
+        network, _ = create_model_from_pretrained('hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224')
+        n_outputs = network._modules['visual'].head.proj.out_features
+
+        for name, param in network.named_parameters():
+            param.requires_grad = False
+        require_grad_params, names = inject_trainable_moe_kronecker_new(network, r=[1, 2, 4, 8], where='every_qkv')
+        setattr(network, 'require_grad_params', require_grad_params)
 
     else:
         raise ValueError(name)
