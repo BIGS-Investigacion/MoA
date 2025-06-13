@@ -96,20 +96,23 @@ class ERM(Algorithm):
         all_x = torch.cat(x)
         all_y = torch.cat(y)
 
-        t = self.predict(all_x)
-        loss_aux_list = []
-        loss_aux = 0
-        if self.l_aux:
+        with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+            t = self.predict(all_x)
+            loss_aux_list = []
+            loss_aux = 0
 
-            for n, m in self.featurizer.network.named_modules():
-                if hasattr(m, 'aux_loss'):
-                    loss_aux_list.append(m.aux_loss)
+            if self.l_aux:
 
-            for layer_loss in loss_aux_list:
-                loss_aux += layer_loss
+                for n, m in self.featurizer.network.named_modules():
+                    if hasattr(m, 'aux_loss'):
+                        loss_aux_list.append(m.aux_loss)
 
-        loss = F.cross_entropy(t, all_y)
-        loss += loss_aux
+                for layer_loss in loss_aux_list:
+                    loss_aux += layer_loss
+
+            loss = F.cross_entropy(t, all_y)
+            loss += loss_aux
+
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()

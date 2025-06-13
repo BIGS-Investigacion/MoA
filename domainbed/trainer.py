@@ -120,7 +120,9 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
     train_minibatches_iterator = zip(*train_loaders)
     checkpoint_vals = collections.defaultdict(lambda: [])
 
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(algorithm.optimizer, n_steps, eta_min=1e-6, last_epoch=-1)
+    switch_LRS = int(n_steps/5)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(algorithm.optimizer, switch_LRS, eta_min=1e-5, last_epoch=-1)
+    plateau_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(algorithm.optimizer, mode='min', factor=0.2, patience=3, min_lr=1e-6)
 
     #######################################################
     # start training loop
@@ -149,6 +151,8 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
     n_params = sum([p.numel() for p in algorithm.parameters() if p.requires_grad])
     logger.info("# of trainable params = %d" % n_params)
 
+    torch.cuda.empty_cache()
+
     for step in range(n_steps):
 
         step_start_time = time.time()
@@ -164,7 +168,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
         inputs = {**batches, "step": step}
 
         step_vals = algorithm.update(**inputs)
-        scheduler.step()
+        scheduler.step() if step < switch_LRS else None
 
         for key, val in step_vals.items():
             checkpoint_vals[key].append(val)
@@ -179,6 +183,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
             results = {
                 "step": step,
                 "epoch": step / steps_per_epoch,
+                "lr": algorithm.optimizer.param_groups[0]['lr']
             }
 
             for key, val in checkpoint_vals.items():
@@ -192,6 +197,9 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
             # merge results
             results.update(summaries)
             results.update(accuracies)
+
+            # Update LR scheduler
+            plateau_scheduler.step(summaries["train_out"]) if step >= switch_LRS else None
             
             # print
             if results_keys != last_results_keys:
