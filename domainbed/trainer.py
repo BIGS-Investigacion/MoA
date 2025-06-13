@@ -122,7 +122,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
 
     switch_LRS = int(n_steps/5)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(algorithm.optimizer, switch_LRS, eta_min=1e-5, last_epoch=-1)
-    plateau_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(algorithm.optimizer, mode='min', factor=0.2, patience=3, min_lr=1e-6)
+    plateau_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(algorithm.optimizer, mode='max', factor=0.2, patience=2, min_lr=1e-6)
 
     #######################################################
     # start training loop
