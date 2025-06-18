@@ -122,7 +122,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
 
     switch_LRS = int(n_steps/5)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(algorithm.optimizer, switch_LRS, eta_min=1e-5, last_epoch=-1)
-    plateau_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(algorithm.optimizer, mode='max', factor=0.2, patience=2, min_lr=1e-6)
+    plateau_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(algorithm.optimizer, mode='max', factor=0.5, patience=2, min_lr=1e-6, threshold=5e-3)
 
     #######################################################
     # start training loop
@@ -219,7 +219,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
             writer.add_scalars_with_prefix(summaries, step, f"{testenv_name}/summary/")
             writer.add_scalars_with_prefix(accuracies, step, f"{testenv_name}/all/")
             if not sweep:
-                if best_acc <= summaries["train_out"]:
+                if (best_acc + 1e-3) <= summaries["train_out"]:
                     ckpt_dir = args.out_dir / "checkpoints"
                     ckpt_dir.mkdir(exist_ok=True)
 
