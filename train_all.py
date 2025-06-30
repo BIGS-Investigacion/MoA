@@ -62,12 +62,15 @@ def main():
     parser.add_argument("--prebuild_loader", action="store_true", help="Pre-build eval loaders")
     parser.add_argument("--en", type=bool, default=None)
     parser.add_argument("--es_val", type=int, default=5)
+    parser.add_argument("--random_hparams", action="store_true")
     args, left_argv = parser.parse_known_args()
     args.deterministic = True
 
     # setup hparams
-    hparams = hparams_registry.default_hparams(args.algorithm, args.dataset)
-    # hparams = hparams_registry.random_hparams(args.algorithm, args.dataset,args.trial_seed)
+    if not args.random_hparams:
+        hparams = hparams_registry.default_hparams(args.algorithm, args.dataset)
+    else:
+        hparams = hparams_registry.random_hparams(args.algorithm, args.dataset,args.trial_seed)
 
     keys = ["config.yaml"] + args.configs
     keys = [open(key, encoding="utf8") for key in keys]
