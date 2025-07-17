@@ -26,6 +26,12 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
             dset.transforms = {"x": DBT.aug_uni}
         elif "Biomed" in hparams.model :
             dset.transforms = {"x": DBT.aug_biomed}
+        elif "Virchow2" in hparams.model :
+            dset.transforms = {"x": DBT.aug_virchow2}
+        elif "GPFM" in hparams.model :
+            dset.transforms = {"x": DBT.aug_gpfm}
+        elif "mSTAR" in hparams.model :
+            dset.transforms = {"x": DBT.aug_mstar}
         else:
             raise NotImplementedError
         additional_data = True
@@ -42,6 +48,12 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
                 dset.transforms = {"x": DBT.basic_uni}
             elif "Biomed" in hparams.model :
                 dset.transforms = {"x": DBT.basic_biomed}
+            elif "Virchow2" in hparams.model :
+                dset.transforms = {"x": DBT.basic_virchow2}
+            elif "GPFM" in hparams.model :
+                dset.transforms = {"x": DBT.basic_gpfm}
+            elif "mSTAR" in hparams.model :
+                dset.transforms = {"x": DBT.basic_mstar}
             else:
                 raise NotImplementedError
 
@@ -59,6 +71,12 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
                 dset.transforms = {"x": DBT.aug_uni}
             elif "Biomed" in hparams.model :
                 dset.transforms = {"x": DBT.aug_biomed}
+            elif "Virchow2" in hparams.model :
+                dset.transforms = {"x": DBT.aug_virchow2}
+            elif "GPFM" in hparams.model :
+                dset.transforms = {"x": DBT.aug_gpfm}
+            elif "mSTAR" in hparams.model :
+                dset.transforms = {"x": DBT.aug_mstar}
             else:
                 raise NotImplementedError
 
@@ -73,6 +91,12 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
             dset.transforms = {"x": DBT.basic_uni}
         elif "Biomed" in hparams.model :
             dset.transforms = {"x": DBT.basic_biomed}
+        elif "Virchow2" in hparams.model :
+            dset.transforms = {"x": DBT.basic_virchow2}
+        elif "GPFM" in hparams.model :
+            dset.transforms = {"x": DBT.basic_gpfm}
+        elif "mSTAR" in hparams.model :
+            dset.transforms = {"x": DBT.basic_mstar}
         else:
             raise NotImplementedError
 

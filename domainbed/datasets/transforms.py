@@ -74,8 +74,7 @@ aug_M = A.Compose(
 
 basic_conch = T.Compose(
     [
-        T.Resize((448, 448), interpolation=Interpolation.BICUBIC),
-        T.CenterCrop(size=(448, 448)),
+        T.Resize(size=224, interpolation=Interpolation.BICUBIC, max_size=None, antialias=True),
         T.ToTensor(),
         T.Normalize(mean=CONCH_MEAN, std=CONCH_STD),
     ]
@@ -83,7 +82,7 @@ basic_conch = T.Compose(
 
 aug_conch = T.Compose(
     [
-        T.RandomResizedCrop(448, scale=(0.7, 1.0)),
+        T.RandomResizedCrop(224, scale=(0.7, 1.0)),
         T.RandomHorizontalFlip(),
         T.ColorJitter(0.3, 0.3, 0.3, 0.3),
         T.RandomGrayscale(p=0.1),
@@ -127,5 +126,64 @@ aug_biomed = T.Compose(
         T.RandomGrayscale(p=0.1),
         T.ToTensor(),
         T.Normalize(mean=CONCH_MEAN, std=CONCH_STD),
+    ]
+)
+
+basic_virchow2 = T.Compose(
+    [
+        T.Resize(size=224, interpolation=Interpolation.BICUBIC, max_size=None, antialias=True),
+        T.CenterCrop(size=(224, 224)),
+        T.ToTensor(),
+        T.Normalize(mean = UNI_MEAN, std = UNI_STD)
+    ]
+)
+
+aug_virchow2 = T.Compose(
+    [
+        T.RandomResizedCrop(224, scale=(0.7, 1.0)),
+        T.RandomHorizontalFlip(),
+        T.ColorJitter(0.3, 0.3, 0.3, 0.3),
+        T.RandomGrayscale(p=0.1),
+        T.ToTensor(),
+        T.Normalize(mean = UNI_MEAN, std = UNI_STD)
+    ]
+)
+
+
+basic_gpfm = T.Compose(
+    [
+        T.Resize(size=224, interpolation=Interpolation.BICUBIC, max_size=None, antialias=True),
+        T.ToTensor(),
+        T.Normalize(mean = UNI_MEAN, std = UNI_STD)
+    ]
+)
+
+aug_gpfm = T.Compose(
+    [
+        T.RandomResizedCrop(224, scale=(0.7, 1.0)),
+        T.RandomHorizontalFlip(),
+        T.ColorJitter(0.3, 0.3, 0.3, 0.3),
+        T.RandomGrayscale(p=0.1),
+        T.ToTensor(),
+        T.Normalize(mean = UNI_MEAN, std = UNI_STD)
+    ]
+)
+
+basic_mstar = T.Compose(
+    [
+        T.Resize(size=224),
+        T.ToTensor(),
+        T.Normalize(mean = UNI_MEAN, std = UNI_STD)
+    ]
+)
+
+aug_mstar = T.Compose(
+    [
+        T.RandomResizedCrop(224, scale=(0.7, 1.0)),
+        T.RandomHorizontalFlip(),
+        T.ColorJitter(0.3, 0.3, 0.3, 0.3),
+        T.RandomGrayscale(p=0.1),
+        T.ToTensor(),
+        T.Normalize(mean = UNI_MEAN, std = UNI_STD)
     ]
 )

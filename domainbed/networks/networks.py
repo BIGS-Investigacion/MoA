@@ -90,6 +90,11 @@ class ResNet(torch.nn.Module):
             return self.dropout(self.network.forward_no_head(x, normalize=True))
         elif "Biomed" in self.hparams.model:
             return self.dropout(self.network(x)[0]) 
+        elif "Virchow2" in self.hparams.model:
+            output = self.dropout(self.network(x))
+            class_token = output[:, 0]
+            patch_tokens = output[:, 5:]
+            return torch.cat([class_token, patch_tokens.mean(1)], dim=-1)
         else:
             return self.dropout(self.network(x))
 
