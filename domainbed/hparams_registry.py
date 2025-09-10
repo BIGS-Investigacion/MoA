@@ -27,7 +27,7 @@ def _hparams(algorithm, dataset, random_state):
         if dataset == "DomainNet":
             hparams["batch_size"] = (32, int(2 ** random_state.uniform(3, 5)))
         else:
-            hparams["batch_size"] = (32, int(2 ** random_state.uniform(3, 4)))
+            hparams["batch_size"] = (32, int(2 ** random_state.uniform(3, 6)))
         if algorithm == "ARM":
             hparams["batch_size"] = (8, 8)
     else:
