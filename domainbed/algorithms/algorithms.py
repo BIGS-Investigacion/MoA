@@ -96,7 +96,7 @@ class ERM(Algorithm):
         all_x = torch.cat(x)
         all_y = torch.cat(y)
 
-        with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+        with torch.autocast(device_type="cuda", dtype=torch.float16):
             t = self.predict(all_x)
             loss_aux_list = []
             loss_aux = 0
