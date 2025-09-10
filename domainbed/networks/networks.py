@@ -95,6 +95,9 @@ class ResNet(torch.nn.Module):
             class_token = output[:, 0]
             patch_tokens = output[:, 5:]
             return torch.cat([class_token, patch_tokens.mean(1)], dim=-1)
+        elif "Phikon" in self.hparams.model:
+            return self.dropout(self.network(x).last_hidden_state[:, 0, :])
+
         else:
             return self.dropout(self.network(x))
 

@@ -180,6 +180,18 @@ def get_backbone(name, preserve_readout, pretrained, r=4):
         require_grad_params, names = inject_trainable_moe_kronecker_new(network, r=[1, 2, 4, 8], where='every_qkv')
         setattr(network, 'require_grad_params', require_grad_params)
 
+    elif name == "Phikon_moek_every_qkv":
+        from domainbed.models.lora.lora_util import inject_trainable_moe_kronecker_new
+        from transformers import AutoModel
+
+        network = AutoModel.from_pretrained("owkin/phikon")
+        n_outputs = 768
+
+        for name, param in network.named_parameters():
+            param.requires_grad = False
+        require_grad_params, names = inject_trainable_moe_kronecker_new(network, r=[1, 2, 4, 8], target_replace_module={"ViTSelfAttention"}, where='every_query_value')
+        setattr(network, 'require_grad_params', require_grad_params)
+
     else:
         raise ValueError(name)
 
