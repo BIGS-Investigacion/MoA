@@ -1,7 +1,7 @@
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 from torchvision import transforms as T
-from torchvision.transforms.functional import InterpolationMode as Interpolation
+from torchvision.transforms import InterpolationMode
 
 OPENAI_CLIP_MEAN = [0.48145466, 0.4578275, 0.40821073]
 OPENAI_CLIP_STD = [0.26862954, 0.26130258, 0.27577711]
@@ -74,7 +74,7 @@ aug_M = A.Compose(
 
 basic_conch = T.Compose(
     [
-        T.Resize(size=224, interpolation=Interpolation.BICUBIC, max_size=None, antialias=True),
+        T.Resize(size=(224,224), interpolation=InterpolationMode.BICUBIC, max_size=None, antialias=True),
         T.ToTensor(),
         T.Normalize(mean=CONCH_MEAN, std=CONCH_STD),
     ]
@@ -131,7 +131,7 @@ aug_biomed = T.Compose(
 
 basic_virchow2 = T.Compose(
     [
-        T.Resize(size=224, interpolation=Interpolation.BICUBIC, max_size=None, antialias=True),
+        T.Resize(size=224, interpolation=InterpolationMode.BICUBIC, max_size=None, antialias=True),
         T.CenterCrop(size=(224, 224)),
         T.ToTensor(),
         T.Normalize(mean = UNI_MEAN, std = UNI_STD)
@@ -152,7 +152,7 @@ aug_virchow2 = T.Compose(
 
 basic_gpfm = T.Compose(
     [
-        T.Resize(size=224, interpolation=Interpolation.BICUBIC, max_size=None, antialias=True),
+        T.Resize(size=224, interpolation=InterpolationMode.BICUBIC, max_size=None, antialias=True),
         T.ToTensor(),
         T.Normalize(mean = UNI_MEAN, std = UNI_STD)
     ]
@@ -178,6 +178,25 @@ basic_mstar = T.Compose(
 )
 
 aug_mstar = T.Compose(
+    [
+        T.RandomResizedCrop(224, scale=(0.7, 1.0)),
+        T.RandomHorizontalFlip(),
+        T.ColorJitter(0.3, 0.3, 0.3, 0.3),
+        T.RandomGrayscale(p=0.1),
+        T.ToTensor(),
+        T.Normalize(mean = UNI_MEAN, std = UNI_STD)
+    ]
+)
+
+basic_phikon = T.Compose(
+    [
+        T.Resize(size=(224,224), interpolation=InterpolationMode.BICUBIC, max_size=None, antialias=True),
+        T.ToTensor(),
+        T.Normalize(mean = UNI_MEAN, std = UNI_STD)
+    ]
+)
+
+aug_phikon = T.Compose(
     [
         T.RandomResizedCrop(224, scale=(0.7, 1.0)),
         T.RandomHorizontalFlip(),
