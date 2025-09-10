@@ -120,10 +120,6 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
     train_minibatches_iterator = zip(*train_loaders)
     checkpoint_vals = collections.defaultdict(lambda: [])
 
-    switch_LRS = int(n_steps/5)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(algorithm.optimizer, switch_LRS, eta_min=1e-5, last_epoch=-1)
-    plateau_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(algorithm.optimizer, mode='max', factor=0.5, patience=2, min_lr=1e-6, threshold=5e-3)
-
     #######################################################
     # start training loop
     #######################################################
@@ -168,7 +164,6 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
         inputs = {**batches, "step": step}
 
         step_vals = algorithm.update(**inputs)
-        scheduler.step() if step < switch_LRS else None
 
         for key, val in step_vals.items():
             checkpoint_vals[key].append(val)
@@ -197,9 +192,6 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
             # merge results
             results.update(summaries)
             results.update(accuracies)
-
-            # Update LR scheduler
-            plateau_scheduler.step(summaries["train_out"]) if step >= switch_LRS else None
             
             # print
             if results_keys != last_results_keys:
