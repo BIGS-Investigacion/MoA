@@ -32,6 +32,8 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
             dset.transforms = {"x": DBT.aug_gpfm}
         elif "mSTAR" in hparams.model :
             dset.transforms = {"x": DBT.aug_mstar}
+        elif "Phikon" in hparams.model :
+            dset.transforms = {"x": DBT.aug_phikon}
         else:
             raise NotImplementedError
         additional_data = True
@@ -54,6 +56,8 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
                 dset.transforms = {"x": DBT.basic_gpfm}
             elif "mSTAR" in hparams.model :
                 dset.transforms = {"x": DBT.basic_mstar}
+            elif "Phikon" in hparams.model :
+                dset.transforms = {"x": DBT.basic_phikon}
             else:
                 raise NotImplementedError
 
@@ -77,6 +81,8 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
                 dset.transforms = {"x": DBT.aug_gpfm}
             elif "mSTAR" in hparams.model :
                 dset.transforms = {"x": DBT.aug_mstar}
+            elif "Phikon" in hparams.model :
+                dset.transforms = {"x": DBT.aug_phikon}
             else:
                 raise NotImplementedError
 
@@ -97,6 +103,8 @@ def set_transfroms(dset, data_type, hparams, algorithm_class=None,args=None):
             dset.transforms = {"x": DBT.basic_gpfm}
         elif "mSTAR" in hparams.model :
             dset.transforms = {"x": DBT.basic_mstar}
+        elif "Phikon" in hparams.model :
+            dset.transforms = {"x": DBT.basic_phikon}
         else:
             raise NotImplementedError
 
