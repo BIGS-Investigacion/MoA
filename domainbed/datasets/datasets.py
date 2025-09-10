@@ -25,8 +25,11 @@ DATASETS = [
     "TerraIncognita",
     "DomainNet",
     # External datasets
+    "BreastHist",
     "CervixCyto",
-    "ColoHisto"
+    "ColoHisto",
+    "LungHist",
+    "ProstateHist"
 ]
 
 
@@ -256,8 +259,14 @@ class TerraIncognita(MultipleEnvironmentImageFolder):
         self.dir = os.path.join(root, "terra_incognita/")
         super().__init__(self.dir)
 
+class BreastHist(MultipleEnvironmentImageFolder):
+    ENVIRONMENTS = ["BACH", "BRACS", "BreaKHis", "Burnasyan"]
+    def __init__(self, root):
+        self.dir = os.path.join(root, "BreastHist/")
+        super().__init__(self.dir)
+
 class CervixCyto(MultipleEnvironmentImageFolder):
-    ENVIRONMENTS = ["BMT", "HiCervix", "lbc", "repomed"]
+    ENVIRONMENTS = ["BMT", "Herlev", "HiCervix", "LBC2020"]
     def __init__(self, root):
         self.dir = os.path.join(root, "CervixCyto/")
         super().__init__(self.dir)
@@ -266,4 +275,16 @@ class ColoHisto(MultipleEnvironmentImageFolder):
     ENVIRONMENTS = ["Chaoyang", "CRC-VAL-HE-7K", "Kather", "LC25000"]
     def __init__(self, root):
         self.dir = os.path.join(root, "ColoHisto/")
+        super().__init__(self.dir)
+
+class LungHist(MultipleEnvironmentImageFolder):
+    ENVIRONMENTS = ["LC25000", "LubLung", "LungHist700", "UNN-LC"]
+    def __init__(self, root):
+        self.dir = os.path.join(root, "LungHist/")
+        super().__init__(self.dir)
+
+class ProstateHist(MultipleEnvironmentImageFolder):
+    ENVIRONMENTS = ["CrowdedGleason", "Gleason2019", "Gleason_CNN", "SICAPv2"]
+    def __init__(self, root):
+        self.dir = os.path.join(root, "ProstateHist/")
         super().__init__(self.dir)
