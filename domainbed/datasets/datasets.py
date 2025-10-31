@@ -29,7 +29,8 @@ DATASETS = [
     "CervixCyto",
     "ColoHisto",
     "LungHist",
-    "ProstateHist"
+    "ProstateHist",
+    "MIDOG22"
 ]
 
 
@@ -46,8 +47,8 @@ def num_environments(dataset_name):
 
 class MultipleDomainDataset:
     N_STEPS = 5001  # Default, subclasses may override
-    CHECKPOINT_FREQ = 100  # Default, subclasses may override
-    N_WORKERS = 4  # Default, subclasses may override
+    CHECKPOINT_FREQ = 200  # Default, subclasses may override
+    N_WORKERS = 8  # Default, subclasses may override
     ENVIRONMENTS = None  # Subclasses should override
     INPUT_SHAPE = None  # Subclasses should override
 
@@ -266,13 +267,13 @@ class BreastHist(MultipleEnvironmentImageFolder):
         super().__init__(self.dir)
 
 class CervixCyto(MultipleEnvironmentImageFolder):
-    ENVIRONMENTS = ["BMT", "Herlev", "HiCervix", "LBC2020"]
+    ENVIRONMENTS = ["APCData", "BMT", "Cervix93", "LBC2020"]
     def __init__(self, root):
         self.dir = os.path.join(root, "CervixCyto/")
         super().__init__(self.dir)
 
 class ColoHisto(MultipleEnvironmentImageFolder):
-    ENVIRONMENTS = ["Chaoyang", "CRC-VAL-HE-7K", "Kather", "LC25000"]
+    ENVIRONMENTS = ["Chaoyang", "EBHI-SEG", "Kather", "LC25000"]
     def __init__(self, root):
         self.dir = os.path.join(root, "ColoHisto/")
         super().__init__(self.dir)
@@ -287,4 +288,10 @@ class ProstateHist(MultipleEnvironmentImageFolder):
     ENVIRONMENTS = ["CrowdedGleason", "Gleason2019", "Gleason_CNN", "SICAPv2"]
     def __init__(self, root):
         self.dir = os.path.join(root, "ProstateHist/")
+        super().__init__(self.dir)
+
+class MIDOG22(MultipleEnvironmentImageFolder):
+    ENVIRONMENTS = ["can_cmct", "can_lc", "can_lymph", "hum_bc", "hum_nt"]
+    def __init__(self, root):
+        self.dir = os.path.join(root, "MIDOG22/")
         super().__init__(self.dir)
