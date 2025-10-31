@@ -91,31 +91,55 @@ class ERM(Algorithm):
         )
 
         self.featurizer.network.require_grad_params = None
+        self.autocast = hparams['autocast']
 
     def update(self, x, y, **kwargs):
         all_x = torch.cat(x)
         all_y = torch.cat(y)
 
-        with torch.autocast(device_type="cuda", dtype=torch.float16):
+        if self.autocast:
+            if not hasattr(self, 'scaler'):
+                assert torch.cuda.is_available()
+                self.scaler = torch.amp.GradScaler(device='cuda')
+            with torch.autocast(device_type="cuda", dtype=torch.float16):
+                t = self.predict(all_x)
+                loss_aux_list = []
+                loss_aux = 0
+
+                if self.l_aux:
+                    for n, m in self.featurizer.network.named_modules():
+                        if hasattr(m, 'aux_loss'):
+                            loss_aux_list.append(m.aux_loss)
+
+                    for layer_loss in loss_aux_list:
+                        loss_aux += layer_loss
+
+                loss = F.cross_entropy(t, all_y)
+                loss += loss_aux
+
+                self.optimizer.zero_grad()
+                self.scaler.scale(loss).backward()
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+        
+        else:
             t = self.predict(all_x)
             loss_aux_list = []
             loss_aux = 0
 
             if self.l_aux:
-
                 for n, m in self.featurizer.network.named_modules():
                     if hasattr(m, 'aux_loss'):
                         loss_aux_list.append(m.aux_loss)
-
                 for layer_loss in loss_aux_list:
                     loss_aux += layer_loss
 
             loss = F.cross_entropy(t, all_y)
             loss += loss_aux
 
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
 
         return {"loss": loss.item()}
 

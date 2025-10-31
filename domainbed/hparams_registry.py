@@ -21,6 +21,7 @@ def _hparams(algorithm, dataset, random_state):
 
     hparams["freeze_bn"] = (True, True)
     hparams["pretrained"] = (True, True)  # only for ResNet
+    hparams['autocast'] = (True, True)
 
     if dataset not in SMALL_IMAGES:
         hparams["lr"] = (5e-5, 10 ** random_state.uniform(-5, -3.5))
