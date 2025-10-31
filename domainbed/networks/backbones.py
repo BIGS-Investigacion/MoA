@@ -112,9 +112,12 @@ def get_backbone(name, preserve_readout, pretrained, r=4):
         from domainbed.models.lora.lora_util import inject_trainable_moe_kronecker_new
         from conch.open_clip_custom import create_model_from_pretrained
 
-        network, _ = create_model_from_pretrained("conch_ViT-B-16", checkpoint_path="/home/pcx/pytorch-models/conch_chkpt.bin")
-        network = network.visual.to(torch.device("cuda"))
-        n_outputs = 512 if network.use_attentional_pool_contrast else 768
+        network, _ = create_model_from_pretrained("conch_ViT-B-16", checkpoint_path="/home/jesferrom/pytorch-models/conch_chkpt.bin")
+
+        network.visual.use_attentional_pool_contrast = True
+        network.visual.use_attentional_pool_caption = False
+
+        n_outputs = 512 if network.visual.use_attentional_pool_contrast else 768
 
         for name, param in network.named_parameters():
             param.requires_grad = False
@@ -125,7 +128,7 @@ def get_backbone(name, preserve_readout, pretrained, r=4):
         from domainbed.models.lora.lora_util import inject_trainable_moe_kronecker_new
 
         network = timm.create_model("vit_large_patch16_224", img_size=224, patch_size=16, init_values=1e-5, num_classes=0, dynamic_img_size=True)
-        network.load_state_dict(torch.load(("/home/pcx/pytorch-models/uni_chkpt.bin"), map_location="cpu"), strict=True)
+        network.load_state_dict(torch.load(("/home/jesferrom/pytorch-models/uni_chkpt.bin"), map_location="cpu"), strict=True)
         n_outputs = network.norm.normalized_shape[0]
         
         for name, param in network.named_parameters():
@@ -189,7 +192,7 @@ def get_backbone(name, preserve_readout, pretrained, r=4):
 
         for name, param in network.named_parameters():
             param.requires_grad = False
-        require_grad_params, names = inject_trainable_moe_kronecker_new(network, r=[1, 2, 4, 8], target_replace_module={"ViTSelfAttention"}, where='every_query_value')
+        require_grad_params, names = inject_trainable_moe_kronecker_new(network, r=[1, 2, 4, 8], target_replace_module={"ViTSelfAttention"}, where='every_query_key_value')
         setattr(network, 'require_grad_params', require_grad_params)
 
     else:

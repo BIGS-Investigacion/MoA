@@ -87,7 +87,7 @@ class ResNet(torch.nn.Module):
     def forward(self, x):
         """Encode x into a feature vector of size n_outputs."""
         if "conch" in self.hparams.model:
-            return self.dropout(self.network.forward_no_head(x, normalize=True))
+            return self.dropout(self.network.encode_image(x, normalize=True, proj_contrast=self.network.visual.use_attentional_pool_contrast))
         elif "Biomed" in self.hparams.model:
             return self.dropout(self.network(x)[0]) 
         elif "Virchow2" in self.hparams.model:
