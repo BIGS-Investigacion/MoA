@@ -53,6 +53,33 @@ class SelectionMethod:
         else:
             return None
 
+    @classmethod
+    def get_record_paths(self, records):
+        _hparams_accs = self.hparams_accs(records)
+
+        if len(_hparams_accs):
+            
+            check_1 = all(d['args']['hparams_seed'] == _hparams_accs[0][1][0]['args']['hparams_seed'] for d in _hparams_accs[0][1])
+            check_2 = all(d['args']['trial_seed'] == _hparams_accs[0][1][0]['args']['trial_seed'] for d in _hparams_accs[0][1])
+
+            consistency_check = all((check_1, check_2))
+
+            if consistency_check:
+                od = _hparams_accs[0][1][0]['args']['output_dir']
+                te = _hparams_accs[0][1][0]['args']['real_test_envs']
+                ts = _hparams_accs[0][1][0]['args']['trial_seed']
+
+                print(f'Trial seed: {ts}')
+                print(f'Test envs: {te}')
+                print(f'output_dir: {od}')
+
+                return ts, te, od
+            else:
+                raise ValueError
+
+        else:
+            raise ValueError
+
 class IIDAccuracySelectionMethod(SelectionMethod):
     """Picks argmax(mean(env_out_acc for env in train_envs))"""
     name = "training-domain validation set"
