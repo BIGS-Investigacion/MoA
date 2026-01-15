@@ -92,60 +92,50 @@ class ERM(Algorithm):
 
         self.featurizer.network.require_grad_params = None
         self.autocast = hparams['autocast']
+        self.scaler = torch.amp.GradScaler(device='cuda') if self.autocast else None
 
     def update(self, x, y, **kwargs):
         all_x = torch.cat(x)
         all_y = torch.cat(y)
 
+        self.optimizer.zero_grad()
+
         if self.autocast:
-            if not hasattr(self, 'scaler'):
-                assert torch.cuda.is_available()
-                self.scaler = torch.amp.GradScaler(device='cuda')
             with torch.autocast(device_type="cuda", dtype=torch.float16):
-                t = self.predict(all_x)
-                loss_aux_list = []
-                loss_aux = 0
+                loss = self._update(all_x, all_y)
 
-                if self.l_aux:
-                    for n, m in self.featurizer.network.named_modules():
-                        if hasattr(m, 'aux_loss'):
-                            loss_aux_list.append(m.aux_loss)
-
-                    for layer_loss in loss_aux_list:
-                        loss_aux += layer_loss
-
-                loss = F.cross_entropy(t, all_y)
-                loss += loss_aux
-
-                self.optimizer.zero_grad()
-                self.scaler.scale(loss).backward()
-                self.scaler.step(self.optimizer)
-                self.scaler.update()
+            self.scaler.scale(loss).backward()
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
         
         else:
-            t = self.predict(all_x)
-            loss_aux_list = []
-            loss_aux = 0
+            loss = self._update(all_x, all_y)
 
-            if self.l_aux:
-                for n, m in self.featurizer.network.named_modules():
-                    if hasattr(m, 'aux_loss'):
-                        loss_aux_list.append(m.aux_loss)
-                for layer_loss in loss_aux_list:
-                    loss_aux += layer_loss
-
-            loss = F.cross_entropy(t, all_y)
-            loss += loss_aux
-
-            self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
 
-        return {"loss": loss.item()}
+        return {"loss": loss.detach().cpu().item()}
 
     def predict(self, x):
         return self.network(x)
 
+    def _update(self, all_x, all_y):
+        t = self.predict(all_x)
+        loss_aux_list = []
+        loss_aux = 0
+
+        if self.l_aux:
+            for n, m in self.featurizer.network.named_modules():
+                if hasattr(m, 'aux_loss'):
+                    loss_aux_list.append(m.aux_loss)
+
+            for layer_loss in loss_aux_list:
+                loss_aux += layer_loss
+
+        loss = F.cross_entropy(t, all_y)
+        loss += loss_aux
+
+        return loss
 
 class Mixstyle(Algorithm):
     """MixStyle w/o domain label (random shuffle)"""
