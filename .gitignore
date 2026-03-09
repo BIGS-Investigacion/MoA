@@ -45,6 +45,13 @@ config
 # Logs
 logs
 *.log
+*.slurm
+*.out
+
+# Auxiliary files
+*.xlsx
+*.png
+*.jpg
 
 # OS generated
 .DS_Store
