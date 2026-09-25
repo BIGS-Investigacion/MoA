@@ -129,13 +129,14 @@ def get_dataset(test_envs, args, hparams, algorithm_class=None):
     in_splits = []
     out_splits = []
     for env_i, env in enumerate(dataset):
+        n_out = int(len(env) * args.holdout_fraction)
 
         # The split only depends on seed_hash (= trial_seed).
         # It means that the split is always identical only if use same trial_seed,
         # independent to run the code where, when, or how many times.
         out, in_ = split_dataset(
             env,
-            int(len(env) * args.holdout_fraction),
+            n_out,
             misc.seed_hash(args.trial_seed, env_i),
             args
         )
@@ -153,16 +154,25 @@ def get_dataset(test_envs, args, hparams, algorithm_class=None):
             out_type = "mnist"
 
         set_transfroms(in_, in_type, hparams, algorithm_class,args)
-        set_transfroms(out, out_type, hparams, algorithm_class,args)
 
         if hparams["class_balanced"]:
             in_weights = misc.make_weights_for_balanced_classes(in_)
-            out_weights = misc.make_weights_for_balanced_classes(out)
         else:
-            in_weights, out_weights = None, None
-        in_splits.append((in_, in_weights))
-        out_splits.append((out, out_weights))
+            in_weights = None
 
+        in_splits.append((in_, in_weights))
+
+        if n_out > 0:
+            set_transfroms(out, out_type, hparams, algorithm_class,args)
+            if hparams["class_balanced"]:
+                out_weights = misc.make_weights_for_balanced_classes(out)
+            else:
+                out_weights = None
+        
+            out_splits.append((out, out_weights))
+        else:
+            out_splits.append(None)
+            
     return dataset, in_splits, out_splits
 
 
