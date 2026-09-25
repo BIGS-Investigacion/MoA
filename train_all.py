@@ -3,6 +3,7 @@ import collections
 import random
 import sys
 from pathlib import Path
+from itertools import combinations
 
 import numpy as np
 import PIL
@@ -63,6 +64,7 @@ def main():
     parser.add_argument("--en", type=bool, default=None)
     parser.add_argument("--es_val", type=int, default=5)
     parser.add_argument('--hparams_seed', type=int, default=0, help='Seed for random hparams (0 means "default hparams")')
+    parser.add_argument("--lodoval", action="store_true")
     args, left_argv = parser.parse_known_args()
     args.deterministic = True
 
@@ -156,8 +158,11 @@ def main():
     n_steps = (n_steps // checkpoint_freq) * checkpoint_freq + 1
     logger.info(f"n_steps is updated to {org_n_steps} => {n_steps} for checkpointing")
 
-    if not args.test_envs:
+    if args.lodoval:
+        args.test_envs = [list(c) for c in combinations(range(len(dataset)), 2)]
+    elif not args.test_envs:
         args.test_envs = [[te] for te in range(len(dataset))]
+    
     logger.info(f"Target test envs = {args.test_envs}")
 
     ###########################################################################
@@ -190,12 +195,14 @@ def main():
     logger.info("Algorithm: %s" % args.algorithm)
     logger.info("Dataset: %s" % args.dataset)
 
-    table = PrettyTable(["Selection"] + dataset.environments + ["Avg."])
-    for key, row in results.items():
-        row.append(np.mean(row))
-        row = [f"{acc:.3%}" for acc in row]
-        table.add_row([key] + row)
-    logger.nofmt(table)
+    if not args.lodoval:
+
+        table = PrettyTable(["Selection"] + dataset.environments + ["Avg."])
+        for key, row in results.items():
+            row.append(np.mean(row))
+            row = [f"{acc:.3%}" for acc in row]
+            table.add_row([key] + row)
+        logger.nofmt(table)
 
 
 if __name__ == "__main__":

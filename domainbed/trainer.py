@@ -8,11 +8,12 @@ import loralib as lora
 import numpy as np
 import torch
 import torch.utils.data
+import os
 
 from domainbed import algorithms
 from domainbed import swad as swad_module
 from domainbed.datasets import get_dataset, split_dataset
-from domainbed.evaluator import Evaluator
+from domainbed.evaluator import Evaluator, LODOVal_Evaluator, balanced_accuracy, macro_f1, auroc, sensitivity, specificity, macro_sensitivity, macro_specificity, make_binary_f1
 from domainbed.lib import misc, swa_utils
 from domainbed.lib.fast_data_loader import FastDataLoader, InfiniteDataLoader
 from domainbed.lib.query import Q
@@ -86,20 +87,29 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
     ]
 
     # setup eval loaders
-    eval_loaders_kwargs = []
-    for i, (env, _) in enumerate(in_splits + out_splits + test_splits):
-        batchsize = hparams["test_batchsize"]
-        loader_kwargs = {"dataset": env, "batch_size": batchsize, "num_workers": dataset.N_WORKERS}
-        if args.prebuild_loader:
-            loader_kwargs = FastDataLoader(**loader_kwargs)
-        eval_loaders_kwargs.append(loader_kwargs)
+    if not args.lodoval:
 
-    eval_weights = [None for _, weights in (in_splits + out_splits + test_splits)]
-    eval_loader_names = ["env{}_in".format(i) for i in range(len(in_splits))]
-    eval_loader_names += ["env{}_out".format(i) for i in range(len(out_splits))]
-    eval_loader_names += ["env{}_inTE".format(i) for i in range(len(test_splits))]
-    eval_meta = list(zip(eval_loader_names, eval_loaders_kwargs, eval_weights))
+        eval_loaders_kwargs = []
+        for i, (env, _) in enumerate(in_splits + out_splits + test_splits):
+            batchsize = hparams["test_batchsize"]
+            loader_kwargs = {"dataset": env, "batch_size": batchsize, "num_workers": dataset.N_WORKERS}
+            
+    else:
+        named_splits = [(f"env{i}_in", s) for i, s in enumerate(in_splits)]
+        named_splits += [(f"env{i}_out", s) for i, s in enumerate(out_splits) if s is not None]
+        named_splits += [(f"env{i}_inTE", s) for i, s in enumerate(test_splits)]
 
+        eval_meta = []
+        for name, (env, _) in named_splits:
+            loader_kwargs = {
+                "dataset": env,
+                "batch_size": hparams["test_batchsize"],
+                "num_workers": dataset.N_WORKERS,
+            }
+            if args.prebuild_loader:
+                loader_kwargs = FastDataLoader(**loader_kwargs)
+            eval_meta.append((name, loader_kwargs, None))
+        
     #######################################################
     # setup algorithm (model)
     #######################################################
@@ -123,15 +133,36 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
     #######################################################
     # start training loop
     #######################################################
-    evaluator = Evaluator(
-        test_envs,
-        eval_meta,
-        n_envs,
-        logger,
-        evalmode=args.evalmode,
-        debug=args.debug,
-        target_env=target_env,
-    )
+
+    if not args.lodoval:
+
+        evaluator = Evaluator(
+            test_envs,
+            eval_meta,
+            n_envs,
+            logger,
+            evalmode=args.evalmode,
+            debug=args.debug,
+            target_env=target_env,
+        )
+
+    else:
+
+        evaluator = LODOVal_Evaluator(
+            test_envs, eval_meta, n_envs, logger,
+            evalmode="fast", debug=False, device="cuda",
+            extra_metrics={
+                "bacc": balanced_accuracy,
+                "f1": macro_f1,
+                "auroc": auroc,
+                "sensitivity": sensitivity,
+                "specificity": specificity,
+                "macro_sensitivity": macro_sensitivity,
+                "macro_specificity": macro_specificity,
+                "f1_pos0": make_binary_f1(0),
+                "f1_pos1": make_binary_f1(1),
+            },
+        )
 
     swad = None
     if hparams["swad"]:
@@ -143,6 +174,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
     last_results_keys = None
     records = []
     epochs_path = args.out_dir / "results.jsonl"
+    preds_path = os.path.splitext(epochs_path)[0] + "_preds.jsonl"
 
     n_params = sum([p.numel() for p in algorithm.parameters() if p.requires_grad])
     logger.info("# of trainable params = %d" % n_params)
@@ -185,13 +217,27 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
                 results[key] = np.mean(val)
 
             eval_start_time = time.time()
-            accuracies, summaries = evaluator.evaluate(algorithm)
+
+            if not args.lodoval:
+                accuracies, summaries = evaluator.evaluate(algorithm)
+            else:
+                accuracies, summaries, losses, extra, preds = evaluator.evaluate(algorithm, ret_losses=True, ret_extra=True, ret_preds=True)
+
+                results_per_domain = {
+                    name: {k: np.asarray(v).tolist() for k, v in res.items()}
+                    for name, res in preds.items()
+                }
+                results_per_domain["step"] = step
+                   
             results["eval_time"] = time.time() - eval_start_time
 
             results_keys = list(summaries.keys()) + sorted(accuracies.keys()) + list(results.keys())
             # merge results
             results.update(summaries)
             results.update(accuracies)
+            if args.lodoval:
+                results.update(losses)
+                results.update(extra)
             
             # print
             if results_keys != last_results_keys:
@@ -205,6 +251,10 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
 
             with open(epochs_path, "a") as f:
                 f.write(json.dumps(results, sort_keys=True, default=json_handler) + "\n")
+
+            if args.lodoval:
+                with open(preds_path, "a") as f:
+                    f.write(json.dumps(results_per_domain, sort_keys=True) + "\n")
 
             checkpoint_vals = collections.defaultdict(lambda: [])
 
@@ -230,7 +280,8 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
                     }
                     algorithm.cuda()
                     if not args.debug:
-                        torch.save(save_dict, path)
+                        # torch.save(save_dict, path)
+                        pass
                     else:
                         logger.debug("DEBUG Mode -> no save (org path: %s)" % path)
                     best_acc = summaries["train_out"]
@@ -240,6 +291,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
                     es_count +=1
             
             # swad
+            # Not modified; may not work correctly in lodoval mode.
             if swad:
                 def prt_results_fn(results, avgmodel):
                     step_str = f" [{avgmodel.start_step}-{avgmodel.end_step}]"
@@ -256,9 +308,10 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
 
                 swad_algorithm = swa_utils.AveragedModel(algorithm)  # reset
 
-            if es_count >= es_val:
-                logger.info("reached max number of iterations without improvement -> early stop !")
-                break
+            if args.es_val > 0:
+                if es_count >= es_val:
+                    logger.info("reached max number of iterations without improvement -> early stop !")
+                    break
 
         if step % args.tb_freq == 0:
             # add step values only for tb log
