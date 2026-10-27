@@ -29,7 +29,7 @@ def mark_only_attn_as_trainable(model) -> None:
         if 'attn' not in n:
             p.requires_grad = False
 
-def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, target_env=None,sweep=False):
+def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, target_env=None, sweep=False, rich_eval=False):
     logger.info("")
 
     #######################################################
@@ -87,28 +87,20 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
     ]
 
     # setup eval loaders
-    if not args.lodoval:
+    named_splits = [(f"env{i}_in", s) for i, s in enumerate(in_splits)]
+    named_splits += [(f"env{i}_out", s) for i, s in enumerate(out_splits) if s is not None]
+    named_splits += [(f"env{i}_inTE", s) for i, s in enumerate(test_splits)]
 
-        eval_loaders_kwargs = []
-        for i, (env, _) in enumerate(in_splits + out_splits + test_splits):
-            batchsize = hparams["test_batchsize"]
-            loader_kwargs = {"dataset": env, "batch_size": batchsize, "num_workers": dataset.N_WORKERS}
-            
-    else:
-        named_splits = [(f"env{i}_in", s) for i, s in enumerate(in_splits)]
-        named_splits += [(f"env{i}_out", s) for i, s in enumerate(out_splits) if s is not None]
-        named_splits += [(f"env{i}_inTE", s) for i, s in enumerate(test_splits)]
-
-        eval_meta = []
-        for name, (env, _) in named_splits:
-            loader_kwargs = {
-                "dataset": env,
-                "batch_size": hparams["test_batchsize"],
-                "num_workers": dataset.N_WORKERS,
-            }
-            if args.prebuild_loader:
-                loader_kwargs = FastDataLoader(**loader_kwargs)
-            eval_meta.append((name, loader_kwargs, None))
+    eval_meta = []
+    for name, (env, _) in named_splits:
+        loader_kwargs = {
+            "dataset": env,
+            "batch_size": hparams["test_batchsize"],
+            "num_workers": dataset.N_WORKERS,
+        }
+        if args.prebuild_loader:
+            loader_kwargs = FastDataLoader(**loader_kwargs)
+        eval_meta.append((name, loader_kwargs, None))
         
     #######################################################
     # setup algorithm (model)
@@ -134,7 +126,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
     # start training loop
     #######################################################
 
-    if not args.lodoval:
+    if not rich_eval:
 
         evaluator = Evaluator(
             test_envs,
@@ -218,7 +210,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
 
             eval_start_time = time.time()
 
-            if not args.lodoval:
+            if not rich_eval:
                 accuracies, summaries = evaluator.evaluate(algorithm)
             else:
                 accuracies, summaries, losses, extra, preds = evaluator.evaluate(algorithm, ret_losses=True, ret_extra=True, ret_preds=True)
@@ -235,7 +227,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
             # merge results
             results.update(summaries)
             results.update(accuracies)
-            if args.lodoval:
+            if rich_eval:
                 results.update(losses)
                 results.update(extra)
             
@@ -252,7 +244,7 @@ def train(test_envs, args, hparams, n_steps, checkpoint_freq, logger, writer, ta
             with open(epochs_path, "a") as f:
                 f.write(json.dumps(results, sort_keys=True, default=json_handler) + "\n")
 
-            if args.lodoval:
+            if rich_eval:
                 with open(preds_path, "a") as f:
                     f.write(json.dumps(results_per_domain, sort_keys=True) + "\n")
 
