@@ -129,7 +129,7 @@ def get_dataset(test_envs, args, hparams, algorithm_class=None):
     in_splits = []
     out_splits = []
     for env_i, env in enumerate(dataset):
-        n_out = int(len(env) * args.holdout_fraction)
+        n_out = 0 if env_i in test_envs else int(len(env) * args.holdout_fraction)
 
         # The split only depends on seed_hash (= trial_seed).
         # It means that the split is always identical only if use same trial_seed,
