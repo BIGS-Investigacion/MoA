@@ -6,9 +6,6 @@ sweep_output
 # Not used
 sweep.py
 
-# Shell file
-*.sh
-
 # Python
 *.pyc
 *.pyo
