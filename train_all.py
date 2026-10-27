@@ -65,6 +65,7 @@ def main():
     parser.add_argument("--es_val", type=int, default=5)
     parser.add_argument('--hparams_seed', type=int, default=0, help='Seed for random hparams (0 means "default hparams")')
     parser.add_argument("--lodoval", action="store_true")
+    parser.add_argument("--extra_metrics", action="store_true")
     args, left_argv = parser.parse_known_args()
     args.deterministic = True
 
@@ -162,8 +163,12 @@ def main():
         args.test_envs = [list(c) for c in combinations(range(len(dataset)), 2)]
     elif not args.test_envs:
         args.test_envs = [[te] for te in range(len(dataset))]
+    else:
+        args.test_envs = [args.test_envs]
     
     logger.info(f"Target test envs = {args.test_envs}")
+
+    rich_eval = args.lodoval or getattr(args, "extra_metrics", False)
 
     ###########################################################################
     # Run
@@ -181,6 +186,7 @@ def main():
             checkpoint_freq=checkpoint_freq,
             logger=logger,
             writer=writer,
+            rich_eval=rich_eval
         )
 
         all_records.append(records)
@@ -195,7 +201,7 @@ def main():
     logger.info("Algorithm: %s" % args.algorithm)
     logger.info("Dataset: %s" % args.dataset)
 
-    if not args.lodoval:
+    if not rich_eval:
 
         table = PrettyTable(["Selection"] + dataset.environments + ["Avg."])
         for key, row in results.items():
