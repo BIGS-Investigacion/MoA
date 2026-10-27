@@ -321,10 +321,10 @@ def main():
 
     parser.add_argument(
         "--metric",
-        default="acc",
+        default="loss",
         help=(
             "Metric to use as the selection and reporting criterion "
-            "(default: acc). E.g.: acc, loss. Metrics whose name contains "
+            "(default: loss). E.g.: acc, loss. Metrics whose name contains "
             "'loss' are minimized automatically."
         ),
     )
